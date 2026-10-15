@@ -1,0 +1,29 @@
+# --- Python ---
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+backend/.env
+
+# --- Node / Frontend ---
+node_modules/
+dist/
+*.local
+
+# --- 数据与运行时产物 ---
+*.db
+*.sqlite3/
+data/mysql/
+data/redis/
+data/snapshots/
+logs/
+
+# --- IDE / 系统 ---
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
