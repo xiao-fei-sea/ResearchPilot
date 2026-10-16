@@ -41,6 +41,9 @@ class Settings(BaseSettings):
     max_rounds: int = 2
     task_time_limit: int = 900  # 任务总时长上限（秒）
 
+    # --- P0 冒烟开关：True 走模拟流水线，M1 接入真实 pipeline 后置 False ---
+    mock_pipeline: bool = True
+
 
 @lru_cache
 def get_settings() -> Settings:

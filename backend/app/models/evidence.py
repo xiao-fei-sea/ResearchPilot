@@ -41,7 +41,8 @@ class Source(TimestampMixin, Base):
     domain: Mapped[str] = mapped_column(String(255), default="", index=True)
     published_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
 
-    status: Mapped[SourceStatus] = mapped_column(default=SourceStatus.pending_fetch, nullable=False, index=True
+    status: Mapped[SourceStatus] = mapped_column(
+        default=SourceStatus.pending_fetch, nullable=False, index=True
     )
     credibility: Mapped[Decimal | None] = mapped_column(Numeric(3, 2), nullable=True)
     fetch_channel: Mapped[str | None] = mapped_column(String(16), nullable=True)  # jina/playwright/direct
@@ -108,7 +109,8 @@ class Claim(TimestampMixin, Base):
     )
     text: Mapped[str] = mapped_column(Text, nullable=False)
     topic_tag: Mapped[str] = mapped_column(String(128), default="")
-    verification: Mapped[ClaimVerification] = mapped_column(default=ClaimVerification.unchecked, nullable=False
+    verification: Mapped[ClaimVerification] = mapped_column(
+        default=ClaimVerification.unchecked, nullable=False
     )
 
 

@@ -21,7 +21,8 @@ class StageRun(Base):
         BigInteger, ForeignKey("research_task.id"), nullable=False, index=True
     )
     stage: Mapped[StageName] = mapped_column(nullable=False)
-    status: Mapped[StageStatus] = mapped_column(default=StageStatus.running, nullable=False
+    status: Mapped[StageStatus] = mapped_column(
+        default=StageStatus.running, nullable=False
     )
     attempt: Mapped[int] = mapped_column(default=1, nullable=False)
     started_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
