@@ -14,6 +14,7 @@ from typing import Any
 
 from sqlalchemy.orm import Session
 
+from app.config import get_settings
 from app.models import EventLog
 from app.redis_client import get_redis
 
@@ -52,8 +53,15 @@ def emit_event(
         "payload": payload or {},
         "ts": datetime.now().isoformat(timespec="seconds"),
     }
-    try:
-        get_redis().publish(task_channel(task_id), json.dumps(message, ensure_ascii=False))
-    except Exception:  # 发布失败不影响主流程，事件已落库可回放
-        logger.exception("publish event failed", extra={"task_id": task_id, "event_id": event.id})
+    # mock 模式（P0 冒烟）：任务同步内联执行完毕，无在线客户端，跳过实时发布；
+    # 真实流水线（M1）走 Pub/Sub 推送给 SSE 在线连接。
+    if not get_settings().mock_pipeline:
+        try:
+            get_redis().publish(
+                task_channel(task_id), json.dumps(message, ensure_ascii=False)
+            )
+        except Exception:  # 发布失败不影响主流程，事件已落库可回放
+            logger.exception(
+                "publish event failed", extra={"task_id": task_id, "event_id": event.id}
+            )
     return event.id

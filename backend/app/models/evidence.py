@@ -11,7 +11,6 @@ from sqlalchemy import (
     Numeric,
     String,
     Text,
-    UniqueConstraint,
 )
 from sqlalchemy.dialects.mysql import JSON, MEDIUMTEXT
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -45,7 +44,8 @@ class Source(TimestampMixin, Base):
         default=SourceStatus.pending_fetch, nullable=False, index=True
     )
     credibility: Mapped[Decimal | None] = mapped_column(Numeric(3, 2), nullable=True)
-    fetch_channel: Mapped[str | None] = mapped_column(String(16), nullable=True)  # jina/playwright/direct
+    # jina/playwright/direct
+    fetch_channel: Mapped[str | None] = mapped_column(String(16), nullable=True)
     fetched_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
     content_simhash: Mapped[int | None] = mapped_column(BigInteger, nullable=True)
 

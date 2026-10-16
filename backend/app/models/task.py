@@ -1,5 +1,4 @@
-﻿"""任务侧模型：research_task / sub_question / search_query。"""
-from datetime import datetime
+"""任务侧模型：research_task / sub_question / search_query。"""
 from typing import Any
 
 from sqlalchemy import (
@@ -24,7 +23,8 @@ class ResearchTask(TimestampMixin, Base):
 
     id: Mapped[int] = mapped_column(BigIntPK, primary_key=True, autoincrement=True)
     topic: Mapped[str] = mapped_column(Text, nullable=False)
-    status: Mapped[TaskStatus] = mapped_column(default=TaskStatus.pending, nullable=False, index=True
+    status: Mapped[TaskStatus] = mapped_column(
+        default=TaskStatus.pending, nullable=False, index=True
     )
     # 用户参数：深度/语言/时间范围/篇幅/模型覆盖
     params: Mapped[dict[str, Any]] = mapped_column(JSON, default=dict)

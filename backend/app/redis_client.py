@@ -10,7 +10,12 @@ def get_redis() -> redis.Redis:
     global _client
     if _client is None:
         _client = redis.Redis.from_url(
-            get_settings().redis_url, decode_responses=True
+            get_settings().redis_url,
+            decode_responses=True,
+            # 短超时：Redis 不可用时发布/缓存操作快速失败，
+            # 由调用方降级（事件已落库可回放，缓存未命中走 DB）
+            socket_connect_timeout=2,
+            socket_timeout=2,
         )
     return _client
 

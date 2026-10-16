@@ -5,6 +5,7 @@
 - 收到 done / error 事件或超时后关闭连接；空闲期发心跳注释保活。
 """
 import json
+import logging
 import time
 
 from fastapi import APIRouter, Depends, Header
@@ -16,6 +17,8 @@ from app.db import get_db, get_session_factory
 from app.events import task_channel
 from app.models import EventLog
 from app.redis_client import get_redis
+
+logger = logging.getLogger("app.api.events")
 
 router = APIRouter(prefix="/api/research", tags=["events"])
 
@@ -46,8 +49,13 @@ def _event_payload(row: EventLog) -> dict:
 def _stream(task_id: int, cursor: int):
     """生成器：回放 + 实时订阅（在线程池中运行）。"""
     redis_client = get_redis()
-    pubsub = redis_client.pubsub(ignore_subscribe_messages=True)
-    pubsub.subscribe(task_channel(task_id))
+    try:
+        pubsub = redis_client.pubsub(ignore_subscribe_messages=True)
+        pubsub.subscribe(task_channel(task_id))
+    except Exception:
+        # Redis 不可用：降级为仅回放（事件已落库，补发 cursor 之后的全部）
+        logger.exception("pubsub unavailable, fallback to replay-only")
+        pubsub = None
     try:
         # 1) 回放：补发 cursor 之后已落库的事件
         with get_session_factory()() as db:
@@ -61,11 +69,26 @@ def _stream(task_id: int, cursor: int):
                 yield _format_sse(row.id, row.type, _event_payload(row))
                 if row.type in ("done", "error"):
                     return
+            # 无实时通道时：任务未结束则保持短轮询回放（间隔 2s），直到出现终态
+            if pubsub is None:
+                while time.monotonic() < time.monotonic() + MAX_STREAM_SECONDS:
+                    time.sleep(2)
+                    db.expire_all()
+                    rows = db.scalars(
+                        select(EventLog)
+                        .where(EventLog.task_id == task_id, EventLog.id > cursor)
+                        .order_by(EventLog.id)
+                    ).all()
+                    for row in rows:
+                        cursor = max(cursor, row.id)
+                        yield _format_sse(row.id, row.type, _event_payload(row))
+                        if row.type in ("done", "error"):
+                            return
 
         # 2) 实时：Pub/Sub 推送，空闲发心跳
         deadline = time.monotonic() + MAX_STREAM_SECONDS
         last_beat = time.monotonic()
-        while time.monotonic() < deadline:
+        while pubsub is not None and time.monotonic() < deadline:
             message = pubsub.get_message(timeout=1.0)
             if message is None:
                 if time.monotonic() - last_beat > HEARTBEAT_INTERVAL:
@@ -82,7 +105,8 @@ def _stream(task_id: int, cursor: int):
                 return
         yield _format_sse(0, "warn", {"message": "stream timeout", "task_id": task_id})
     finally:
-        pubsub.close()
+        if pubsub is not None:
+            pubsub.close()
 
 
 @router.get("/{task_id}/events")

@@ -45,13 +45,13 @@ def test_sse_replays_events_and_closes_on_done(client, sse_env):
     task_id = client.post("/api/research", json={"topic": "SSE 回放测试"}).json()["task_id"]
 
     lines = _sse_lines(client, task_id)
-    events = [l for l in lines if l.startswith("event: ")]
+    events = [line for line in lines if line.startswith("event: ")]
     # 回放顺序：created → stage.update ×12 → done
     assert events[0] == "event: task.created"
     assert events[-1] == "event: done"
     assert events.count("event: stage.update") == 12
     # SSE 帧携带自增 id（Last-Event-ID 游标的基础）
-    ids = [int(l.split(": ")[1]) for l in lines if l.startswith("id: ")]
+    ids = [int(line.split(": ")[1]) for line in lines if line.startswith("id: ")]
     assert ids == sorted(ids)
 
 
@@ -60,7 +60,7 @@ def test_sse_respects_last_event_id(client, sse_env):
 
     # 模拟客户端收到前 3 条事件后断线（游标=3）
     lines = _sse_lines(client, task_id, headers={"Last-Event-ID": "3"})
-    events = [l for l in lines if l.startswith("event: ")]
+    events = [line for line in lines if line.startswith("event: ")]
     assert len(events) < 14  # 只补发缺口
     assert events[-1] == "event: done"
 

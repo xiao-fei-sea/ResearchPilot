@@ -27,3 +27,9 @@ celery_app.conf.update(
     task_soft_time_limit=settings.task_time_limit,
     worker_prefetch_multiplier=1,  # 长任务公平分发
 )
+
+# P0 mock 模式：不依赖 Redis broker，任务在调用进程内联执行（演示/冒烟用）。
+# M1 接入真实流水线时置 MOCK_PIPELINE=false，恢复经 broker 派发给 worker。
+if settings.mock_pipeline:
+    celery_app.conf.task_always_eager = True
+    celery_app.conf.task_eager_propagates = True

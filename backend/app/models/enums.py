@@ -1,8 +1,8 @@
-"""枚举定义，与设计文档 §5.2 各表的 ENUM 一一对应。"""
-import enum
+﻿"""枚举定义，与设计文档 §5.2 各表的 ENUM 一一对应。"""
+from enum import StrEnum
 
 
-class TaskStatus(str, enum.Enum):
+class TaskStatus(StrEnum):
     """research_task.status —— 同时是流水线状态机的节点。"""
 
     pending = "pending"
@@ -17,13 +17,13 @@ class TaskStatus(str, enum.Enum):
     cancelled = "cancelled"
 
 
-class SubQuestionType(str, enum.Enum):
+class SubQuestionType(StrEnum):
     factual = "factual"          # 事实型
     comparative = "comparative"  # 对比型
     trend = "trend"              # 趋势型
 
 
-class SourceType(str, enum.Enum):
+class SourceType(StrEnum):
     official_doc = "official_doc"
     github = "github"
     blog = "blog"
@@ -32,7 +32,7 @@ class SourceType(str, enum.Enum):
     forum = "forum"
 
 
-class SourceStatus(str, enum.Enum):
+class SourceStatus(StrEnum):
     pending_fetch = "pending_fetch"
     fetched = "fetched"
     failed = "failed"
@@ -40,7 +40,7 @@ class SourceStatus(str, enum.Enum):
     duplicated = "duplicated"
 
 
-class ClaimVerification(str, enum.Enum):
+class ClaimVerification(StrEnum):
     verified = "verified"          # ≥2 独立来源交叉验证通过
     corroborated = "corroborated"  # 有补充证据支持
     disputed = "disputed"          # 存在矛盾
@@ -48,13 +48,13 @@ class ClaimVerification(str, enum.Enum):
     unchecked = "unchecked"        # 未核验
 
 
-class ContradictionType(str, enum.Enum):
+class ContradictionType(StrEnum):
     fact = "fact"        # 事实冲突
     caliber = "caliber"  # 口径冲突
     opinion = "opinion"  # 观点冲突
 
 
-class StageName(str, enum.Enum):
+class StageName(StrEnum):
     planner = "planner"
     searcher = "searcher"
     extractor = "extractor"
@@ -63,14 +63,14 @@ class StageName(str, enum.Enum):
     writer = "writer"
 
 
-class StageStatus(str, enum.Enum):
+class StageStatus(StrEnum):
     running = "running"
     done = "done"
     failed = "failed"
     retrying = "retrying"
 
 
-class EventLevel(str, enum.Enum):
+class EventLevel(StrEnum):
     info = "info"
     progress = "progress"
     warn = "warn"

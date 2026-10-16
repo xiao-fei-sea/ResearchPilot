@@ -1,5 +1,8 @@
-# P0 阶段：先提供 mysql + redis（开发/冒烟必需）
-# api / worker / frontend 服务在 P0-6 补全
+# ResearchPilot 编排（设计文档 §11 部署：api / worker / mysql / redis / frontend）
+#
+# 用法：
+#   docker compose up -d              # 全栈（prod profile）
+#   docker compose --profile dev up -d mysql redis   # 仅基础服务（本地开发）
 
 services:
   mysql:
@@ -30,6 +33,42 @@ services:
       interval: 5s
       timeout: 3s
       retries: 30
+
+  api:
+    build: ./backend
+    container_name: researchpilot-api
+    command: sh -c "alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 8000"
+    environment: &backend-env
+      DATABASE_URL: mysql+pymysql://researchpilot:researchpilot@mysql:3306/researchpilot?charset=utf8mb4
+      REDIS_URL: redis://redis:6379/0
+      MOCK_PIPELINE: "true"
+      CORS_ORIGINS: '["http://localhost:8080"]'
+    ports:
+      - "8000:8000"
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  worker:
+    build: ./backend
+    container_name: researchpilot-worker
+    command: celery -A app.celery worker --loglevel=info --concurrency=4
+    environment: *backend-env
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  frontend:
+    build: ./frontend
+    container_name: researchpilot-frontend
+    ports:
+      - "8080:80"
+    depends_on:
+      - api
 
 volumes:
   mysql-data:
