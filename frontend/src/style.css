@@ -1,0 +1,8 @@
+@import "tailwindcss";
+
+/* ResearchPilot 全局样式（P0 极简） */
+html,
+body,
+#app {
+  height: 100%;
+}
